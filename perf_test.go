@@ -8,7 +8,7 @@ import (
 type A struct{ pattern string }
 type B struct{ pattern string }
 
-func BenchmarkChannelSelect(b *testing.B) {
+func BenchmarkPatternChannel(b *testing.B) {
 	var wg sync.WaitGroup
 
 	chA := make(chan A)
@@ -38,7 +38,7 @@ func BenchmarkChannelSelect(b *testing.B) {
 	wg.Wait()
 }
 
-func BenchmarkTypeSwitch(b *testing.B) {
+func BenchmarkPatternType(b *testing.B) {
 	var wg sync.WaitGroup
 
 	ch := make(chan interface{})
@@ -75,7 +75,7 @@ func (p *P) Pattern() string {
 	return p.pattern
 }
 
-func BenchmarkPatternSwitch(b *testing.B) {
+func BenchmarkPatternString(b *testing.B) {
 	var wg sync.WaitGroup
 
 	ch := make(chan P)

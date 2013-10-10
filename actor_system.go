@@ -13,7 +13,7 @@ type ActorSystem struct {
 	guardian *Actor
 
 	// Default recipient
-	DeadLetters ActorRef
+	deadLetters ActorRef
 
 	// Logger reference for the system
 	Logger LoggingActorRef
@@ -31,8 +31,8 @@ func NewActorSystem(name string, config Config) *ActorSystem {
 		config: config,
 	}
 	s.guardian = newActor(nil, "$guardian", s, nil)
-	s.DeadLetters = s.guardian.ActorOf(&DeadLetters{}, "$deadLetters")
-	s.Logger = LoggingActorRef{s.guardian.ActorOf(&Logger{wc: s.config.logging.Logger}, "$logger")}
+	s.deadLetters = s.guardian.ActorOf(&DeadLetters{}, "$deadLetters")
+	s.Logger = LoggingActorRef{s.guardian.ActorOf(&Logger{wc: s.config.Logging.Logger}, "$logger")}
 	s.Events = EventStreamActorRef{s.guardian.ActorOf(&EventStream{}, "$events")}
 	return s
 }
@@ -45,5 +45,5 @@ func (s *ActorSystem) ActorOf(receiver Receiver, name string) ActorRef {
 // Stop this actor system. This will stop the guardian actor,
 // which in turn will recursively stop all its child actors.
 func (s *ActorSystem) Shutdown() {
-	s.guardian.Self.Tell(StopMessage{}, nil)
+	s.guardian.Self.Stop(s.guardian.Self)
 }

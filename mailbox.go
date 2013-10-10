@@ -7,12 +7,16 @@ import (
 var OverflowError = errors.New("Mailbox overflowed")
 
 type MailboxConfig struct {
-	bufferSize, overflowPolicy uint
+	BufferSize, OverflowPolicy uint
+}
+
+func NewMailboxConfig() MailboxConfig {
+	return MailboxConfig{}
 }
 
 const (
 	BlockOnOverflow = iota // Default channel behaviour
-	ThrowOnOverflow
+	PanicOnOverflow
 	DropOnOverflow
 )
 
@@ -36,22 +40,18 @@ type Mailbox struct {
 
 func NewMailbox(config MailboxConfig) *Mailbox {
 	return &Mailbox{
-		mailbox:        make(chan Envelope, config.bufferSize),
-		overflowPolicy: config.overflowPolicy,
+		mailbox:        make(chan Envelope, config.BufferSize),
+		overflowPolicy: config.OverflowPolicy,
 	}
-}
-
-func (m *Mailbox) Cleanup() {
-	close(m.mailbox)
 }
 
 func (m *Mailbox) Enqueue(envelope Envelope) {
 	switch m.overflowPolicy {
-	case ThrowOnOverflow, DropOnOverflow:
+	case PanicOnOverflow, DropOnOverflow:
 		select {
 		case m.mailbox <- envelope: // Attempt to send
 		default:
-			if m.overflowPolicy == ThrowOnOverflow {
+			if m.overflowPolicy == PanicOnOverflow {
 				panic(OverflowError) // Supervisor can handle this
 			}
 		}

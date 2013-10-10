@@ -27,7 +27,7 @@ func newActor(receiver Receiver, name string, system *ActorSystem, parent ActorR
 		parentPath = parent.Path()
 	}
 	path := NewActorPath(name, parentPath)
-	mailbox := NewMailbox(system.config.mailbox)
+	mailbox := NewMailbox(system.config.Mailbox)
 	self := &LocalActorRef{
 		mailbox: mailbox,
 		path:    path,
@@ -65,30 +65,28 @@ func (a *Actor) stopping() {
 	a.Lock()
 	defer a.Unlock()
 
-	if a.System.config.logging.LogLifecycle {
-		a.System.Logger.Log(a.Path, "stopping")
+	if !a.Path.Equals(a.System.Logger.Path()) && a.System.config.Logging.LogLifecycle {
+		a.System.Logger.Log(a.Path.String(), "stopping")
 	}
-
-	a.mailbox.Cleanup()
 
 	// Stop all children then return (who will, in turn,
 	// stop their children and return)
 	for _, child := range a.children {
-		child.Tell(StopMessage{}, a.Self)
+		child.Stop(a.Self)
 	}
 }
 
 // Implements a select over message types
 func (a *Actor) run() {
-	if a.System.config.logging.LogLifecycle {
-		a.System.Logger.Log(a.Path, "starting")
+	if !a.Path.Equals(a.System.Logger.Path()) && a.System.config.Logging.LogLifecycle {
+		a.System.Logger.Log(a.Path.String(), "starting")
 	}
 
 	for {
 		envelope := a.mailbox.Dequeue() // Blocks until message ready
 
-		if a.System.config.logging.LogReceive {
-			a.System.Logger.Log(a.name, " <- ", envelope)
+		if !a.Path.Equals(a.System.Logger.Path()) && a.System.config.Logging.LogReceive {
+			a.System.Logger.Logf("%s <- %#v", a.name, envelope)
 		}
 
 		switch envelope.message.body.(type) {
@@ -98,7 +96,7 @@ func (a *Actor) run() {
 		default:
 			if a.receiver != nil {
 				if envelope.message.sender == nil {
-					a.receiver.Receive(envelope.message.body, a.System.DeadLetters, a)
+					a.receiver.Receive(envelope.message.body, a.System.deadLetters, a)
 				} else {
 					a.receiver.Receive(envelope.message.body, envelope.message.sender, a)
 				}

@@ -9,6 +9,7 @@ import (
 // remote machine.
 type ActorRef interface {
 	Tell(message interface{}, sender ActorRef)
+	Stop(sender ActorRef)
 	Path() ActorPath
 	Equals(ActorRef) bool
 
@@ -18,6 +19,10 @@ type ActorRef interface {
 type LocalActorRef struct {
 	path    ActorPath
 	mailbox *Mailbox
+}
+
+func (r *LocalActorRef) Stop(sender ActorRef) {
+	r.Tell(StopMessage{}, sender)
 }
 
 // Notifies the actor of a message

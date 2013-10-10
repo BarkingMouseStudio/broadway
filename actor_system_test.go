@@ -1,16 +1,22 @@
 package broadway
 
 import (
+	"os"
 	"sync"
 	"testing"
 )
 
-type echo struct {
+type echoBehaviour struct {
 	results chan<- interface{}
 }
 
-func (e *echo) Receive(message interface{}, sender ActorRef, context *Actor) {
-	e.results <- message
+type echoMessage struct{}
+
+func (e *echoBehaviour) Receive(message interface{}, sender ActorRef, context *Actor) {
+	switch message := message.(type) {
+	case echoMessage:
+		e.results <- message
+	}
 }
 
 func TestNewActorSystem(t *testing.T) {
@@ -20,8 +26,14 @@ func TestNewActorSystem(t *testing.T) {
 	if s.guardian == nil {
 		t.Error("Guardian nil")
 	}
-	if s.DeadLetters == nil {
+	if s.deadLetters == nil {
 		t.Error("DeadLetters nil")
+	}
+	if &s.Logger == nil {
+		t.Error("Logger nil")
+	}
+	if &s.Events == nil {
+		t.Error("Events nil")
 	}
 	if s.config != conf {
 		t.Error("Config mismatch")
@@ -52,15 +64,18 @@ func BenchmarkActorSystem(b *testing.B) {
 
 	var wg sync.WaitGroup
 
-	config := NewConfig()
-	config.mailbox = MailboxConfig{
-		bufferSize:     100,
-		overflowPolicy: BlockOnOverflow,
-	}
-
-	system := NewActorSystem("Benchmark", config)
+	system := NewActorSystem("Benchmark", Config{
+		Mailbox: MailboxConfig{
+			BufferSize: 10,
+		},
+		Logging: LoggingConfig{
+			LogLifecycle: false,
+			LogReceive:   false,
+			Logger:       os.Stdout,
+		},
+	})
 	results := make(chan interface{})
-	actor := system.ActorOf(&echo{results}, "ActorA") // Echoes back messages sent to it
+	actor := system.ActorOf(&echoBehaviour{results}, "Actor") // Echoes back messages sent to it
 
 	go func() {
 		for _ = range results {
@@ -72,7 +87,7 @@ func BenchmarkActorSystem(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		wg.Add(1)
-		actor.Tell("test", nil) // Send messages to actor
+		actor.Tell(echoMessage{}, nil) // Send messages to actor
 	}
 
 	wg.Wait()

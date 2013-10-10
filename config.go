@@ -1,13 +1,13 @@
 package broadway
 
 type Config struct {
-	mailbox MailboxConfig
-	logging LoggingConfig
+	Mailbox MailboxConfig
+	Logging LoggingConfig
 }
 
 func NewConfig() Config {
 	return Config{
-		mailbox: MailboxConfig{},
-		logging: NewLoggingConfig(),
+		Mailbox: NewMailboxConfig(),
+		Logging: NewLoggingConfig(),
 	}
 }

@@ -32,15 +32,12 @@ func TestMailbox(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Error("Failed to dequeue")
 	}
-
-	m.Cleanup()
 }
 
 func TestMailbox_DropOnOverflow(t *testing.T) {
-	m := NewMailbox(MailboxConfig{overflowPolicy: DropOnOverflow})
+	m := NewMailbox(MailboxConfig{OverflowPolicy: DropOnOverflow})
 	m.Enqueue(Envelope{})
 	m.Enqueue(Envelope{}) // This will be dropped and should not deadlock
-	m.Cleanup()
 }
 
 func TestMailbox_ThrowOnOverflow(t *testing.T) {
@@ -50,14 +47,13 @@ func TestMailbox_ThrowOnOverflow(t *testing.T) {
 		}
 	}()
 
-	m := NewMailbox(MailboxConfig{overflowPolicy: ThrowOnOverflow})
+	m := NewMailbox(MailboxConfig{OverflowPolicy: PanicOnOverflow})
 	m.Enqueue(Envelope{})
 	m.Enqueue(Envelope{}) // This will error
-	m.Cleanup()
 }
 
 func TestMailbox_BlockOnOverflow(t *testing.T) {
-	m := NewMailbox(MailboxConfig{overflowPolicy: BlockOnOverflow})
+	m := NewMailbox(MailboxConfig{OverflowPolicy: BlockOnOverflow})
 
 	go func() {
 		m.Enqueue(Envelope{})
