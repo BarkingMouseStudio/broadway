@@ -21,6 +21,10 @@ func TestActorPathName(t *testing.T) {
 	if name != expected {
 		t.Errorf("Expected %v to be %v", name, expected)
 	}
+	p2 := ActorPath([]string{})
+	if p2.Name() != "" {
+		t.Error("Expected empty name")
+	}
 }
 
 func TestActorPathString(t *testing.T) {

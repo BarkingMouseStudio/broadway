@@ -40,8 +40,8 @@ type Logger struct {
 	wc io.Writer
 }
 
-func NewLogger(config LoggingConfig) Logger {
-	return Logger{config.Logger}
+func NewLogger(config LoggingConfig) *Logger {
+	return &Logger{config.Logger}
 }
 
 func (l *Logger) Receive(message interface{}, sender ActorRef, context *Actor) {

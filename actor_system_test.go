@@ -16,17 +16,26 @@ func (e *echoBehaviour) Receive(message interface{}, sender ActorRef, context *A
 	switch message := message.(type) {
 	case echoMessage:
 		e.results <- message
+	default:
+		context.System.DeadLetters.Tell(message, sender)
 	}
 }
 
 func TestNewActorSystem(t *testing.T) {
 	name := "Test"
-	conf := Config{}
+	conf := Config{
+		Mailbox: NewMailboxConfig(),
+		Logging: LoggingConfig{
+			LogLifecycle: false,
+			LogReceive:   false,
+			Logger:       os.Stdout,
+		},
+	}
 	s := NewActorSystem(name, conf)
 	if s.guardian == nil {
 		t.Error("Guardian nil")
 	}
-	if s.deadLetters == nil {
+	if s.DeadLetters == nil {
 		t.Error("DeadLetters nil")
 	}
 	if &s.Logger == nil {
@@ -41,6 +50,7 @@ func TestNewActorSystem(t *testing.T) {
 	if s.name != name {
 		t.Errorf("Invalid name, expected %v, got %v", name, s.name)
 	}
+	s.Shutdown()
 }
 
 func TestActorSystemActorOf(t *testing.T) {
@@ -51,6 +61,7 @@ func TestActorSystemActorOf(t *testing.T) {
 	if path.String() != expected {
 		t.Errorf("Invalid child path, expected %v, got %v", expected, path.String())
 	}
+	s.Shutdown()
 }
 
 func TestActorSystemShutdown(t *testing.T) {
@@ -64,18 +75,14 @@ func BenchmarkActorSystem(b *testing.B) {
 
 	var wg sync.WaitGroup
 
-	system := NewActorSystem("Benchmark", Config{
+	s := NewActorSystem("Benchmark", Config{
 		Mailbox: MailboxConfig{
 			BufferSize: 10,
 		},
-		Logging: LoggingConfig{
-			LogLifecycle: false,
-			LogReceive:   false,
-			Logger:       os.Stdout,
-		},
+		Logging: LoggingConfig{},
 	})
 	results := make(chan interface{})
-	actor := system.ActorOf(&echoBehaviour{results}, "Actor") // Echoes back messages sent to it
+	actor := s.ActorOf(&echoBehaviour{results}, "Actor") // Echoes back messages sent to it
 
 	go func() {
 		for _ = range results {
@@ -91,4 +98,7 @@ func BenchmarkActorSystem(b *testing.B) {
 	}
 
 	wg.Wait()
+	b.StopTimer()
+
+	s.Shutdown()
 }

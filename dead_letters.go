@@ -13,6 +13,10 @@ type DeadLetter struct {
 // When a message is sent to an Actor that is terminated before receiving the message, it will be sent as a DeadLetter to the ActorSystem's EventStream
 type DeadLetters struct{}
 
+func NewDeadLetters() *DeadLetters {
+	return new(DeadLetters)
+}
+
 func (d *DeadLetters) Receive(message interface{}, sender ActorRef, context *Actor) {
 	switch message := message.(type) {
 	case DeadLetter:

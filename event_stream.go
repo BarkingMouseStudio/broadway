@@ -27,6 +27,12 @@ type EventStream struct {
 	channels map[string][]ActorRef
 }
 
+func NewEventStream() *EventStream {
+	return &EventStream{
+		channels: make(map[string][]ActorRef),
+	}
+}
+
 func add(refs []ActorRef, newRef ActorRef) []ActorRef {
 	for _, ref := range refs {
 		if ref.Equals(newRef) {

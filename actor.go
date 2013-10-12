@@ -96,7 +96,7 @@ func (a *Actor) run() {
 		default:
 			if a.receiver != nil {
 				if envelope.message.sender == nil {
-					a.receiver.Receive(envelope.message.body, a.System.deadLetters, a)
+					a.receiver.Receive(envelope.message.body, a.System.DeadLetters, a)
 				} else {
 					a.receiver.Receive(envelope.message.body, envelope.message.sender, a)
 				}

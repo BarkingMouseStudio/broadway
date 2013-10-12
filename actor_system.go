@@ -13,7 +13,7 @@ type ActorSystem struct {
 	guardian *Actor
 
 	// Default recipient
-	deadLetters ActorRef
+	DeadLetters ActorRef
 
 	// Logger reference for the system
 	Logger LoggingActorRef
@@ -31,9 +31,9 @@ func NewActorSystem(name string, config Config) *ActorSystem {
 		config: config,
 	}
 	s.guardian = newActor(nil, "$guardian", s, nil)
-	s.deadLetters = s.guardian.ActorOf(&DeadLetters{}, "$deadLetters")
-	s.Logger = LoggingActorRef{s.guardian.ActorOf(&Logger{wc: s.config.Logging.Logger}, "$logger")}
-	s.Events = EventStreamActorRef{s.guardian.ActorOf(&EventStream{}, "$events")}
+	s.DeadLetters = s.guardian.ActorOf(NewDeadLetters(), "$deadLetters")
+	s.Logger = LoggingActorRef{s.guardian.ActorOf(NewLogger(s.config.Logging), "$logger")}
+	s.Events = EventStreamActorRef{s.guardian.ActorOf(NewEventStream(), "$events")}
 	return s
 }
 
