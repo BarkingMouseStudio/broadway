@@ -13,3 +13,6 @@ TODO:
    - Watching
  - Remote
  - Journaling + Snapshots
+
+[![Build Status](https://drone.io/github.com/BarkingMouseStudio/broadway/status.png)](https://drone.io/github.com/BarkingMouseStudio/broadway/latest)
+[![Coverage Status](https://coveralls.io/repos/BarkingMouseStudio/broadway/badge.png)](https://coveralls.io/r/BarkingMouseStudio/broadway)
