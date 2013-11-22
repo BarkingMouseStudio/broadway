@@ -12,6 +12,7 @@ type ActorRef interface {
 	Stop(sender ActorRef)
 	Path() ActorPath
 	Equals(ActorRef) bool
+	Bind(chan interface{})
 
 	fmt.Stringer
 }
@@ -19,6 +20,13 @@ type ActorRef interface {
 type LocalActorRef struct {
 	path    ActorPath
 	mailbox *Mailbox
+}
+
+// Binds the output of the given channel to the ActorRef
+func (r *LocalActorRef) Bind(ch chan interface{}) {
+	for v := range ch {
+		r.Tell(v, r)
+	}
 }
 
 func (r *LocalActorRef) Stop(sender ActorRef) {
